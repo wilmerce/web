@@ -80,28 +80,16 @@
 
         .calendar-day-cell {
             min-height: 60px; /* Reducido para mejor ajuste en móvil */
+            md:min-height: 70px;
             background-color: rgba(255,255,255,0.45); 
             border: 1px solid rgba(255,255,255,0.35); 
             padding: 2px;
+            sm:padding: 4px;
             cursor: pointer;
             transition: background-color 0.3s;
             font-size: 0.75rem;
+            sm:font-size: 0.8rem;
             color: #1f2937; 
-        }
-        
-        /* Estilos para pantallas pequeñas (sm: 640px) */
-        @media (min-width: 640px) {
-            .calendar-day-cell {
-                padding: 4px;
-                font-size: 0.8rem;
-            }
-        }
-        
-        /* Estilos para pantallas medianas (md: 768px) */
-        @media (min-width: 768px) {
-            .calendar-day-cell {
-                min-height: 70px;
-            }
         }
         .calendar-day-cell:hover {
             background-color: rgba(255,255,255,0.60); 
@@ -120,14 +108,14 @@
             color: white; 
         }
 
-        select#month-select {
-            background-color: rgba(255,255,255,0.25); 
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
+        select, textarea {
+            background-color: rgba(255,255,255,0.25) !important; 
+            border: 1px solid rgba(255,255,255,0.3) !important;
+            color: white !important;
         }
-        select#month-select option {
-            background-color: #5B21B6; 
-            color: white;
+        select option {
+            background-color: #5B21B6 !important; 
+            color: white !important;
         }
         
         .modal {
@@ -334,8 +322,21 @@
             <div id="modal-body">
                 <p id="modal-date-display" class="mb-3 text-base sm:text-lg"></p>
                 <div id="modal-schedule-content">
-                    <label for="task-time" class="block mb-1 font-semibold text-sm sm:text-base">Hora de Limpieza:</label>
-                    <input type="time" id="task-time" class="w-full p-2 rounded bg-white/20 border border-white/30 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 mb-4 text-white">
+                    <label class="block mb-1 font-semibold text-sm sm:text-base">Hora de Limpieza:</label>
+                    <div class="flex items-center gap-2 mb-4">
+                        <select id="task-hour" class="w-full p-2 rounded bg-white/20 border border-white/30 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 text-white appearance-none text-center">
+                        </select>
+                        <span class="font-bold">:</span>
+                        <select id="task-minute" class="w-full p-2 rounded bg-white/20 border border-white/30 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 text-white appearance-none text-center">
+                        </select>
+                        <select id="task-ampm" class="w-full p-2 rounded bg-white/20 border border-white/30 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 text-white appearance-none text-center">
+                            <option value="AM">AM</option>
+                            <option value="PM">PM</option>
+                        </select>
+                    </div>
+                    <label for="task-comment" class="block mb-1 font-semibold text-sm sm:text-base">Comentario:</label>
+                    <textarea id="task-comment" rows="3" maxlength="150" class="w-full p-2 rounded bg-white/20 border border-white/30 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 mb-4 text-white" placeholder="Añade una nota (máx. 20 palabras)..."></textarea>
+                    
                     <p class="mb-2 font-semibold text-sm sm:text-base">Selecciona una Zona:</p>
                     <div id="zone-images-container" class="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4 max-h-48 sm:max-h-60 overflow-y-auto p-2 bg-black/20 rounded">
                     </div>
@@ -344,7 +345,11 @@
                 <div id="modal-view-content" class="hidden">
                     <p class="mb-2"><strong class="font-semibold">Hora Programada:</strong> <span id="view-task-time"></span></p>
                     <p class="mb-2 font-semibold">Zona a Limpiar:</p>
-                    <img id="view-task-zone-image" src="" alt="Zona programada" class="max-w-full h-auto rounded-md mx-auto shadow-lg">
+                    <img id="view-task-zone-image" src="" alt="Zona programada" class="max-w-full h-auto rounded-md mx-auto shadow-lg mb-2">
+                    <div id="view-comment-container" class="hidden">
+                        <p class="mb-1"><strong class="font-semibold">Comentario:</strong></p>
+                        <p id="view-task-comment" class="p-2 bg-black/20 rounded text-white/90 text-sm whitespace-pre-wrap"></p>
+                    </div>
                 </div>
             </div>
             <div id="modal-footer" class="mt-6 text-right">
@@ -366,35 +371,517 @@
             <video id="credit-video" src="wilmerce.mp4" controls class="w-full rounded-lg shadow-2xl"></video>
         </div>
     </div>
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-  import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-analytics.js";
 
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyBS2M3hZBsLpAcbF9IFbTkF45SI5f2bxhY",
-    authDomain: "proyecto-insa.firebaseapp.com",
-    databaseURL: "https://proyecto-insa-default-rtdb.firebaseio.com",
-    projectId: "proyecto-insa",
-    storageBucket: "proyecto-insa.firebasestorage.app",
-    messagingSenderId: "725536615957",
-    appId: "1:725536615957:web:3e8d9b87b637287cc1e81c",
-    measurementId: "G-G3L96SJ53P"
-  };
+    <script type="module">
+        // Importa las funciones que necesitas de los SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const db = getDatabase(app);
-  window.db = db;
-  window.dbRef = ref;
-  window.dbSet = set;
-  window.dbPush = push;
-</script>
-<script src="main.js"></script>
+        // La configuración de tu app web de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBS2M3hZBsLpAcbF9IFbTkF45SI5f2bxhY",
+            authDomain: "proyecto-insa.firebaseapp.com",
+            databaseURL: "https://proyecto-insa-default-rtdb.firebaseio.com",
+            projectId: "proyecto-insa",
+            storageBucket: "proyecto-insa.appspot.com",
+            messagingSenderId: "725536615957",
+            appId: "1:725536615957:web:3e8d9b87b637287cc1e81c",
+            measurementId: "G-G3L96SJ53P"
+        };
 
+        // Inicializa Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // --- INICIO DEL CÓDIGO DE LA APLICACIÓN ---
+
+        const imagePreviewWindow = document.getElementById('image-preview-window');
+        const previewImage = document.getElementById('preview-image');
+        const previewImageName = document.getElementById('preview-image-name');
+        const inicioSection = document.getElementById('inicio-section');
+        const planificadorSection = document.getElementById('planificador-section');
+        const otrosSection = document.getElementById('otros-section');
+        const planificadorTitle = document.getElementById('planificador-title'); 
+        const navLinkInicio = document.getElementById('nav-link-inicio'); 
+        const navLinkCalendario = document.getElementById('nav-link-calendario');
+        const navLinkProgramar = document.getElementById('nav-link-programar');
+        const navLinkOtros = document.getElementById('nav-link-otros');
+        const logoHomeLink = document.getElementById('logo-home-link'); 
+        const currentMonthYearDisplay = document.getElementById('current-month-year-display');
+        const currentYearDisplaySmall = document.getElementById('current-year-display-small');
+        const modeDescription = document.getElementById('mode-description');
+        const calendarDaysGrid = document.getElementById('calendar-days-grid');
+        const prevMonthBtn = document.getElementById('prev-month-btn');
+        const nextMonthBtn = document.getElementById('next-month-btn');
+        const monthSelect = document.getElementById('month-select');
+        const calendarYearDisplay = document.getElementById('calendar-year-display');
+        const taskModalElement = document.getElementById('task-modal'); 
+        const modalContentBox = document.getElementById('modal-content-box'); 
+        const modalTitle = document.getElementById('modal-title');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const modalDateDisplay = document.getElementById('modal-date-display');
+        const modalScheduleContent = document.getElementById('modal-schedule-content');
+        const taskHourSelect = document.getElementById('task-hour');
+        const taskMinuteSelect = document.getElementById('task-minute');
+        const taskAmpmSelect = document.getElementById('task-ampm');
+        const taskCommentTextarea = document.getElementById('task-comment');
+        const zoneImagesContainer = document.getElementById('zone-images-container'); 
+        const selectedZoneImageSrcInput = document.getElementById('selected-zone-image-src');
+        const modalViewContent = document.getElementById('modal-view-content');
+        const viewTaskTime = document.getElementById('view-task-time');
+        const viewTaskZoneImage = document.getElementById('view-task-zone-image');
+        const viewCommentContainer = document.getElementById('view-comment-container');
+        const viewTaskComment = document.getElementById('view-task-comment');
+        const saveTaskBtn = document.getElementById('save-task-btn');
+        const cancelModalBtn = document.getElementById('cancel-modal-btn');
+        const videoModal = document.getElementById('video-modal');
+        const videoModalBg = document.getElementById('video-modal-bg');
+        const creditVideo = document.getElementById('credit-video');
+        const closeVideoModalBtn = document.getElementById('close-video-modal-btn');
+        const wilmerCredit = document.getElementById('wilmer-credit');
+
+        let currentMode = 'view'; 
+        let defaultCalendarYear = 2025;
+        let defaultCalendarMonth = 5; 
+
+        let displayedYear = defaultCalendarYear;
+        let displayedMonth = defaultCalendarMonth; 
+        
+        let viewModeYear = defaultCalendarYear;
+        let viewModeMonth = defaultCalendarMonth;
+
+        const monthNames = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+        let tareasProgramadas = []; 
+        let currentlySelectedDate = null;
+        let imagePreviewTimeout = null; 
+        
+        const tasksRef = ref(database, 'tasks');
+
+        onValue(tasksRef, (snapshot) => {
+            const data = snapshot.val();
+            tareasProgramadas = []; 
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    tareasProgramadas.push({
+                        id: key, 
+                        ...data[key]
+                    });
+                });
+            }
+            console.log("Datos sincronizados desde Firebase:", tareasProgramadas);
+            renderCalendar();
+        });
+
+
+        function openScheduleModal(dateStr) {
+            modalTitle.textContent = `Programar Limpieza para ${dateStr.split('-').reverse().join('/')}`;
+            modalDateDisplay.textContent = `Fecha: ${dateStr.split('-').reverse().join('/')}`;
+            
+            modalScheduleContent.classList.remove('hidden');
+            modalViewContent.classList.add('hidden');
+            saveTaskBtn.classList.remove('hidden');
+            
+            taskHourSelect.value = '8';
+            taskMinuteSelect.value = '0';
+            taskAmpmSelect.value = 'AM';
+            taskCommentTextarea.value = '';
+            selectedZoneImageSrcInput.value = ''; 
+            zoneImagesContainer.innerHTML = ''; 
+
+            for (let i = 1; i <= 7; i++) {
+                const imageName = `zona ${i}.jpeg`; 
+                const zoneDisplayName = `Zona ${i}`; 
+
+                const imgDiv = document.createElement('div');
+                imgDiv.classList.add('zone-image-container', 'cursor-pointer', 'p-1', 'rounded-md', 'hover:bg-white/30');
+                const img = document.createElement('img');
+                img.src = imageName; 
+                img.alt = `Imagen de ${zoneDisplayName}`; 
+                img.classList.add('zone-image', 'w-full', 'h-20', 'object-cover', 'rounded'); 
+                img.dataset.zoneName = zoneDisplayName; 
+                
+                img.addEventListener('mouseenter', (event) => showImagePreview(event, imageName, zoneDisplayName));
+                img.addEventListener('mouseleave', hideImagePreview);
+                img.addEventListener('click', () => selectZoneImage(img));
+
+                imgDiv.appendChild(img);
+                zoneImagesContainer.appendChild(imgDiv);
+            }
+            taskModalElement.classList.remove('hidden');
+        }
+
+        function showImagePreview(event, imageUrl, zoneName) {
+            clearTimeout(imagePreviewTimeout); 
+            previewImage.src = imageUrl;
+            previewImageName.textContent = zoneName;
+
+            if (window.innerWidth < 768) {
+                 imagePreviewWindow.style.top = `80px`;
+                 imagePreviewWindow.style.right = '50%';
+                 imagePreviewWindow.style.transform = 'translateX(50%)';
+            } else {
+                const zoneGridRect = zoneImagesContainer.getBoundingClientRect();
+                const previewHeight = imagePreviewWindow.offsetHeight || 250; 
+                let topPosition = zoneGridRect.top + (zoneGridRect.height / 2) - (previewHeight / 2);
+                topPosition = Math.max(80, Math.min(topPosition, window.innerHeight - previewHeight - 20)); 
+                imagePreviewWindow.style.top = `${topPosition}px`;
+                imagePreviewWindow.style.right = `80px`;
+                imagePreviewWindow.style.transform = 'none';
+            }
+            
+            imagePreviewWindow.style.display = 'block'; 
+            requestAnimationFrame(() => { 
+                imagePreviewWindow.classList.add('visible');
+            });
+        }
+
+        function hideImagePreview() {
+            clearTimeout(imagePreviewTimeout); 
+            imagePreviewWindow.classList.remove('visible');
+            imagePreviewTimeout = setTimeout(() => {
+                if (!imagePreviewWindow.classList.contains('visible')) {
+                    imagePreviewWindow.style.display = 'none';
+                }
+            }, 200); 
+        }
+        
+        function showView(viewName) {
+            const sections = [inicioSection, planificadorSection, otrosSection];
+            let sectionToShow;
+
+            if (viewName === 'planificador') {
+                sectionToShow = planificadorSection;
+                const newPlannerModeClass = currentMode === 'schedule' ? 'mode-schedule' : 'mode-view';
+                planificadorTitle.textContent = currentMode === 'schedule' ? 'Programar Nueva Limpieza' : 'Calendario de Limpieza';
+                planificadorSection.classList.remove('mode-view', 'mode-schedule');
+                planificadorSection.classList.add(newPlannerModeClass);
+                
+                if (currentMode === 'schedule') {
+                    displayedYear = defaultCalendarYear;
+                    displayedMonth = defaultCalendarMonth;
+                } else { 
+                    displayedYear = viewModeYear;
+                    displayedMonth = viewModeMonth;
+                }
+                renderCalendar();
+                updateModeDescription();
+            } else if (viewName === 'otros') {
+                sectionToShow = otrosSection;
+            } else { 
+                sectionToShow = inicioSection;
+            }
+
+            sections.forEach(section => {
+                if (section !== sectionToShow && !section.classList.contains('hidden')) {
+                    section.classList.remove('section-visible-state');
+                    section.classList.add('section-hidden-state');
+                    setTimeout(() => section.classList.add('hidden'), 500);
+                }
+            });
+
+            if (sectionToShow && sectionToShow.classList.contains('hidden')) {
+                sectionToShow.classList.remove('hidden');
+                sectionToShow.classList.add('section-hidden-state');
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        sectionToShow.classList.remove('section-hidden-state');
+                        sectionToShow.classList.add('section-visible-state');
+                    });
+                });
+            }
+        }
+
+        function updateModeDescription() {
+            if (currentMode === 'schedule') {
+                modeDescription.innerHTML = "<h3 class='font-semibold mb-1'>Programar Limpieza:</h3><p>Haz clic en un día del calendario para seleccionar una zona, hora y guardar una nueva tarea de limpieza.</p>";
+            } else { 
+                modeDescription.innerHTML = "<h3 class='font-semibold mb-1'>Ver Calendario:</h3><p>Los días con limpieza programada se mostrarán resaltados. Haz clic en un día marcado para ver los detalles.</p>";
+            }
+        }
+        
+        function renderCalendar() {
+            if (currentMode === 'view') {
+                viewModeYear = displayedYear;
+                viewModeMonth = displayedMonth;
+            }
+
+            const monthName = monthNames[displayedMonth];
+            const monthNumber = (displayedMonth + 1).toString().padStart(2, '0');
+            currentMonthYearDisplay.textContent = `${monthNumber} ${monthName}`;
+            currentYearDisplaySmall.textContent = displayedYear;
+            calendarYearDisplay.textContent = displayedYear;
+            monthSelect.value = displayedMonth;
+            calendarDaysGrid.innerHTML = ''; 
+
+            const firstDayOfMonth = new Date(displayedYear, displayedMonth, 1).getDay();
+            const daysInMonth = new Date(displayedYear, displayedMonth + 1, 0).getDate();
+
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.classList.add('calendar-day-cell', 'empty');
+                calendarDaysGrid.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayCell = document.createElement('div');
+                const dateStr = `${displayedYear}-${String(displayedMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                dayCell.classList.add('calendar-day-cell');
+                dayCell.textContent = day;
+                dayCell.dataset.date = dateStr;
+
+                const today = new Date();
+                if (displayedYear === today.getFullYear() && displayedMonth === today.getMonth() && day === today.getDate()) {
+                    dayCell.classList.add('today');
+                }
+
+                if (tareasProgramadas.some(task => task.date === dateStr)) {
+                    dayCell.classList.add('scheduled');
+                }
+                
+                dayCell.addEventListener('click', () => handleDayClick(dateStr));
+                calendarDaysGrid.appendChild(dayCell);
+            }
+        }
+        
+        function handleDayClick(dateStr) {
+            currentlySelectedDate = dateStr; 
+            modalContentBox.classList.remove('schedule-mode', 'view-mode'); 
+            if (currentMode === 'schedule') {
+                modalContentBox.classList.add('schedule-mode');
+                openScheduleModal(dateStr);
+            } else {
+                const tasksForDay = tareasProgramadas.filter(task => task.date === dateStr);
+                if (tasksForDay.length > 0) {
+                    modalContentBox.classList.add('view-mode');
+                    openViewTaskModal(tasksForDay[0]); 
+                } 
+            }
+        }
+
+        function populateMonthSelect() {
+            monthNames.forEach((name, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = name; 
+                monthSelect.appendChild(option);
+            });
+        }
+        
+        function selectZoneImage(selectedImg) {
+            document.querySelectorAll('.zone-image').forEach(img => img.classList.remove('selected'));
+            selectedImg.classList.add('selected');
+            selectedZoneImageSrcInput.value = selectedImg.src; 
+            console.log("Zona seleccionada:", selectedImg.src, "Nombre:", selectedImg.dataset.zoneName);
+        }
+
+        function openViewTaskModal(task) {
+            modalTitle.textContent = `Detalle de Limpieza para ${task.date.split('-').reverse().join('/')}`;
+            modalDateDisplay.textContent = `Fecha: ${task.date.split('-').reverse().join('/')}`;
+
+            modalScheduleContent.classList.add('hidden');
+            modalViewContent.classList.remove('hidden');
+            saveTaskBtn.classList.add('hidden');
+
+            viewTaskTime.textContent = task.time;
+            viewTaskZoneImage.src = task.zoneImage;
+            viewTaskZoneImage.alt = task.zoneName || "Zona programada";
+
+            if (task.comment && task.comment.trim() !== '') {
+                viewCommentContainer.classList.remove('hidden');
+                viewTaskComment.textContent = task.comment;
+            } else {
+                viewCommentContainer.classList.add('hidden');
+            }
+
+            taskModalElement.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            taskModalElement.classList.add('hidden');
+            hideImagePreview(); 
+        }
+
+        saveTaskBtn.addEventListener('click', () => {
+            const hour = taskHourSelect.value.padStart(2, '0');
+            const minute = taskMinuteSelect.value.padStart(2, '0');
+            const ampm = taskAmpmSelect.value;
+            const time = `${hour}:${minute} ${ampm}`;
+            const comment = taskCommentTextarea.value.trim();
+            
+            const zoneImage = selectedZoneImageSrcInput.value;
+            const selectedImgElement = document.querySelector('.zone-image.selected');
+            const zoneName = selectedImgElement ? selectedImgElement.dataset.zoneName : "Zona Desconocida";
+
+            if (!currentlySelectedDate) {
+                showCustomAlert("Error: No hay fecha seleccionada.");
+                return;
+            }
+            if (!time) {
+                showCustomAlert("Por favor, especifica una hora.");
+                return;
+            }
+            if (!zoneImage) {
+                showCustomAlert("Por favor, selecciona una zona de limpieza.");
+                return;
+            }
+            
+            const newTask = {
+                date: currentlySelectedDate,
+                zoneImage,
+                time,
+                zoneName,
+                comment 
+            };
+
+            push(tasksRef, newTask)
+                .then(() => {
+                    console.log("Tarea guardada en Firebase exitosamente.");
+                    closeModal();
+                })
+                .catch((error) => {
+                    console.error("Error al guardar la tarea en Firebase: ", error);
+                    showCustomAlert("Hubo un error al guardar. Por favor, intenta de nuevo.");
+                });
+        });
+
+        function showCustomAlert(message) {
+            const alertBox = document.createElement('div');
+            alertBox.style.position = 'fixed';
+            alertBox.style.left = '50%';
+            alertBox.style.top = '20px';
+            alertBox.style.transform = 'translateX(-50%)';
+            alertBox.style.padding = '15px 20px';
+            alertBox.style.backgroundColor = '#f8d7da'; 
+            alertBox.style.color = '#721c24'; 
+            alertBox.style.border = '1px solid #f5c6cb';
+            alertBox.style.borderRadius = '8px';
+            alertBox.style.zIndex = '1000'; 
+            alertBox.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+            alertBox.textContent = message;
+            document.body.appendChild(alertBox);
+
+            setTimeout(() => {
+                alertBox.remove();
+            }, 3000); 
+        }
+
+        function populateTimeSelectors() {
+            for (let i = 1; i <= 12; i++) {
+                const option = document.createElement('option');
+                option.value = String(i);
+                option.textContent = String(i).padStart(2, '0');
+                taskHourSelect.appendChild(option);
+            }
+            for (let i = 0; i < 60; i += 5) {
+                const option = document.createElement('option');
+                option.value = String(i);
+                option.textContent = String(i).padStart(2, '0');
+                taskMinuteSelect.appendChild(option);
+            }
+        }
+
+        closeModalBtn.addEventListener('click', closeModal);
+        cancelModalBtn.addEventListener('click', closeModal);
+        navLinkInicio.addEventListener('click', (e) => { 
+            e.preventDefault();
+            showView('inicio');
+        });
+        navLinkCalendario.addEventListener('click', (e) => {
+            e.preventDefault();
+            currentMode = 'view';
+            showView('planificador');
+        });
+        navLinkProgramar.addEventListener('click', (e) => {
+            e.preventDefault();
+            currentMode = 'schedule';
+            showView('planificador');
+        });
+        navLinkOtros.addEventListener('click', (e) => { 
+            e.preventDefault();
+            showView('otros');
+        });
+        logoHomeLink.addEventListener('click', (e) => { 
+            e.preventDefault();
+            showView('inicio');
+        });
+        prevMonthBtn.addEventListener('click', () => {
+            displayedMonth--;
+            if (displayedMonth < 0) {
+                displayedMonth = 11;
+                 if(displayedYear > defaultCalendarYear) {
+                    displayedYear--; 
+                 } else { 
+                    displayedMonth = (displayedYear === defaultCalendarYear && defaultCalendarMonth === 5) ? 5 : 0; 
+                 }
+            }
+            if (displayedYear < defaultCalendarYear) { 
+                displayedYear = defaultCalendarYear;
+                displayedMonth = defaultCalendarMonth;
+            }
+            if (displayedYear === defaultCalendarYear && displayedMonth < defaultCalendarMonth && currentMode === 'schedule') {
+                 displayedMonth = defaultCalendarMonth;
+            }
+            renderCalendar();
+        });
+
+        nextMonthBtn.addEventListener('click', () => {
+            displayedMonth++;
+            if (displayedMonth > 11) {
+                displayedMonth = 0;
+                displayedYear++;
+            }
+            renderCalendar();
+        });
+
+        monthSelect.addEventListener('change', (e) => {
+            const selectedNewMonth = parseInt(e.target.value);
+            if (displayedYear === defaultCalendarYear && selectedNewMonth < defaultCalendarMonth && currentMode === 'schedule') {
+                monthSelect.value = displayedMonth; 
+                showCustomAlert(`En modo programar, no se puede ir antes de ${monthNames[defaultCalendarMonth]} de ${defaultCalendarYear}.`);
+                return;
+            }
+            displayedMonth = selectedNewMonth;
+            renderCalendar();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            populateMonthSelect();
+            populateTimeSelectors();
+            
+            viewModeMonth = defaultCalendarMonth; 
+            viewModeYear = defaultCalendarYear; 
+
+            displayedMonth = defaultCalendarMonth; 
+            displayedYear = defaultCalendarYear;
+            
+            monthSelect.value = displayedMonth; 
+            calendarYearDisplay.textContent = displayedYear;
+            
+            inicioSection.classList.remove('hidden', 'section-hidden-state');
+            inicioSection.classList.add('section-visible-state');
+            planificadorSection.classList.add('hidden', 'section-hidden-state');
+            planificadorSection.classList.remove('section-visible-state');
+            otrosSection.classList.add('hidden', 'section-hidden-state'); 
+            otrosSection.classList.remove('section-visible-state');
+
+            wilmerCredit.addEventListener('click', () => {
+                videoModal.classList.remove('hidden');
+                creditVideo.currentTime = 0; 
+                creditVideo.play();
+            });
+
+            closeVideoModalBtn.addEventListener('click', () => {
+                creditVideo.pause();
+                videoModal.classList.add('hidden');
+            });
+
+            videoModalBg.addEventListener('click', () => { 
+                creditVideo.pause();
+                videoModal.classList.add('hidden');
+            });
+        });
+
+    </script>
 </body>
 </html>
 
